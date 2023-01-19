@@ -3,7 +3,7 @@
 CREATE TABLE sensor_data (
     sensorId INTEGER,
     currentDecibels DOUBLE,
-    event_time TIMESTAMP(3)
+    event_time TIMESTAMP(3) // make sure that this input data is in right format, if not -> problems
 )
 PARTITIONED BY (event_time)
 WITH (
