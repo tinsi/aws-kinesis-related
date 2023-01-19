@@ -1,6 +1,6 @@
 %flink.ssql
 
-CREATE TABLE sensor_data11 (
+CREATE TABLE sensor_data (
     sensorId INTEGER,
     currentDecibels DOUBLE,
     event_time TIMESTAMP(3)
@@ -8,14 +8,14 @@ CREATE TABLE sensor_data11 (
 PARTITIONED BY (event_time)
 WITH (
     'connector' = 'kinesis',
-    'stream' = 'my-input-stream'
+    'stream' = 'my-input-stream' /// this is the kinesis data stream where your input data is
     'aws.region' = 'us-east-1',
     'scan.stream.initpos' = 'LATEST',
     'format' = 'json',
     'json.timestamp-format.standard' = 'ISO-8601'
 )
 
-////// output table = where you want to put your output data 
+////// output table = where you want to put your output data, connected with my-output-stream
 
 %flink.ssql
 
@@ -27,7 +27,7 @@ CREATE TABLE sensor_output_table (
 )
 WITH (
 'connector' = 'kinesis',
-'stream' = 'tiina-output-stream',
+'stream' = 'my-output-stream',
 'aws.region' = 'us-east-1',
 'scan.stream.initpos' = 'LATEST',
 'format' = 'json',
@@ -39,10 +39,10 @@ WITH (
 %flink.ssql(type=update)
 
 INSERT INTO sensor_output_table
-SELECT sensor_data11.sensorId AS sensorId,
-       sensor_data11.currentDecibels AS currentDecibels,
-       sensor_data11.event_time
-  FROM sensor_data11
+SELECT sensor_data.sensorId AS sensorId,
+       sensor_data.currentDecibels AS currentDecibels,
+       sensor_data.event_time
+  FROM sensor_data
   
   
   
