@@ -1,0 +1,49 @@
+%flink.ssql
+
+CREATE TABLE sensor_data11 (
+    sensorId INTEGER,
+    currentDecibels DOUBLE,
+    event_time TIMESTAMP(3)
+)
+PARTITIONED BY (event_time)
+WITH (
+    'connector' = 'kinesis',
+    'stream' = 'my-input-stream'
+    'aws.region' = 'us-east-1',
+    'scan.stream.initpos' = 'LATEST',
+    'format' = 'json',
+    'json.timestamp-format.standard' = 'ISO-8601'
+)
+
+////// output table = where you want to put your output data 
+
+%flink.ssql
+
+CREATE TABLE sensor_output_table (
+    sensorId INTEGER,
+    currentDecibels DOUBLE,
+    event_time TIMESTAMP(3),
+    WATERMARK FOR event_time AS event_time - INTERVAL '5' SECOND
+)
+WITH (
+'connector' = 'kinesis',
+'stream' = 'tiina-output-stream',
+'aws.region' = 'us-east-1',
+'scan.stream.initpos' = 'LATEST',
+'format' = 'json',
+'json.timestamp-format.standard' = 'ISO-8601');
+
+
+///// How to insert data to output table
+
+%flink.ssql(type=update)
+
+INSERT INTO sensor_output_table
+SELECT sensor_data11.sensorId AS sensorId,
+       sensor_data11.currentDecibels AS currentDecibels,
+       sensor_data11.event_time
+  FROM sensor_data11
+  
+  
+  
+/// this is a bit potato example as no modification of data is done between two tables. You could do that in SELECT command in INSERT
